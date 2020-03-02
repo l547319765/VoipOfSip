@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">Voip</string>
+    <string name="title_call">拨号</string>
+    <string name="title_login">登陆</string>
+    <string name="title_code">编码</string>
+
+
+<!-- Assistant related -->
+<!--  loginFrament  -->
+    <string name="username">账号</string>
+    <string name="password">密码</string>
+    <string name="login">登陆</string>
+    <string name="registered">注册</string>
+    <string name="domain">域名</string>
+    <string name="dial">拨号:</string>
+    <string name="sip_user">sip登陆用户</string>
+    <string name="call_record">通话记录</string>
+    <string name="assistant_login">登陆</string>
+    <string name="pref_transport_udp">UDP</string>
+    <string name="pref_transport_tcp">TCP</string>
+    <string name="pref_transport_tls">TLS</string>
+    <string name="call_button">呼叫</string>
+    <string name="assistant_display_name_optional">昵称 (可选)</string>
+    <string name="assistant_generic_account">使用SIP账户</string>
+    <string name="assistant_login_desc">请输入您的用户名和密码以及您的SIP域</string>
+    <string name="assistant_dial">域名 格式：</string>
+
+    <string name="content_description_domain_field">Domain field</string>
+    <string name="content_description_display_field">Display name field</string>
+    <string name="content_description_username_field">Username field</string>
+</resources>
