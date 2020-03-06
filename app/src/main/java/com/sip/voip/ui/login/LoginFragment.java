@@ -1,9 +1,11 @@
 package com.sip.voip.ui.login;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -13,9 +15,13 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.sip.voip.LoginToSipActivity;
+import com.sip.voip.MainActivity;
 import com.sip.voip.R;
 import com.sip.voip.common.RecyclerView.QuickAdapter;
+import com.sip.voip.server.LinphoneService;
 
+import org.linphone.core.AccountCreator;
 import org.linphone.core.RegistrationState;
 
 import java.util.ArrayList;
@@ -29,13 +35,18 @@ public class LoginFragment extends Fragment {
 
     private QuickAdapter mAdapter;
 
+    private AccountCreator mAccountCreator;
+
+    private View root ;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
-        View root = inflater.inflate(R.layout.fragment_login, container, false);
+        root = inflater.inflate(R.layout.fragment_login, container, false);
 
+        mAccountCreator = LinphoneService.getCore().createAccountCreator(null);
 
         RecyclerView loginRecords = (RecyclerView)root.findViewById(R.id.login_list);
 
@@ -59,7 +70,7 @@ public class LoginFragment extends Fragment {
 //                holder.setText(R.id.led, data.get("sip_state"));
                 holder.setText(R.id.login_user, data.get("login_user"));
                 holder.setText(R.id.login_sip, data.get("login_sip"));
-                updateLed((ImageView)holder.getView(R.id.led),RegistrationState.fromInt(Integer.valueOf(data.get("sip_state"))));
+//                updateLed((ImageView)holder.getView(R.id.led),RegistrationState.fromInt(Integer.valueOf(data.get("sip_state"))));
 //                holder.itemView.setOnClickListener(); 此处还可以添加点击事件
             }
         };
@@ -70,27 +81,51 @@ public class LoginFragment extends Fragment {
         //设置增加或删除条目的动画
         loginRecords.setItemAnimator( new DefaultItemAnimator());
 
+        Button login = (Button)root.findViewById(R.id.login);
+
+        Button registered = (Button)root.findViewById(R.id.registered);
+
+        login.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                Intent intent = new Intent(root.getContext(), LoginToSipActivity.class);
+                startActivity(intent);
+            }
+        });
+
+
 
         return root;
     }
-    //更新信号灯函数
-    private void updateLed(ImageView mLed, RegistrationState state) {
-        switch (state) {
-            case Ok: // This state means you are connected, to can make and receive calls & messages
-                mLed.setImageResource(R.drawable.led_connected);
-                break;
-            case None: // This state is the default state
-            case Cleared: // This state is when you disconnected
-                mLed.setImageResource(R.drawable.led_disconnected);
-                break;
-            case Failed: // This one means an error happened, for example a bad password
-                mLed.setImageResource(R.drawable.led_error);
-                break;
-            case Progress: // Connection is in progress, next state will be either Ok or Failed
-                mLed.setImageResource(R.drawable.led_inprogress);
-                break;
-        }
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public List<Map<String,String>> initData(){
         List<Map<String,String>> ls = new ArrayList<Map<String,String>>();
         HashMap<String,String> itemData= new HashMap<>();

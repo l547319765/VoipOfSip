@@ -1,4 +1,4 @@
-package com.sip.voip;
+package com.sip.voip.server;
 
 import android.app.Service;
 import android.content.Intent;
@@ -10,6 +10,9 @@ import android.os.IBinder;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+
+import com.sip.voip.MainActivity;
+import com.sip.voip.R;
 
 import org.linphone.core.Call;
 import org.linphone.core.CallParams;
@@ -171,8 +174,6 @@ public class LinphoneService extends Service {
         super.onTaskRemoved(rootIntent);
     }
 
-
-    //
     private void configureCore() {
         // We will create a directory for user signed certificates if needed
         String basePath = getFilesDir().getAbsolutePath();

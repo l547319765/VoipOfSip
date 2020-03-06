@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import com.sip.voip.server.LinphoneService;
+
 
 public class LauncherActivity extends Activity {
     private Handler mHandler;
@@ -20,7 +22,6 @@ public class LauncherActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-
         // Check whether the Service is already running
         if (LinphoneService.isReady()) {
             onServiceReady();

@@ -7,37 +7,48 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_gravity="fill"
         android:layout_height="wrap_content"
-        android:padding="10dp"
         android:orientation="horizontal">
-
-
-        <TextView
-            style="@style/assistant_input_field_header_font"
+        <ImageView
+            android:id="@+id/static_led"
+            android:layout_margin="10dp"
+            android:src="@drawable/led_disconnected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/dial"
-            android:layout_weight="1"
-            android:textAllCaps="true" />
+            android:layout_weight="1"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="fill"
+            android:orientation="horizontal"
+            android:layout_weight="1">
+            <TextView
+                style="@style/assistant_input_field_header_font"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dial"
+                android:textAllCaps="true"
+                android:layout_gravity="center"/>
 
-        <EditText
-            android:id="@+id/tel_number"
-            android:layout_width="wrap_content"
-            android:layout_weight="99"
-            android:layout_height="wrap_content"
-            android:background="@drawable/et_underline_selector"
-            android:hint="@string/assistant_dial"
-            android:textCursorDrawable="@drawable/cursor_color">
-        </EditText>
+            <EditText
+                android:id="@+id/tel_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="99"
+                android:background="@drawable/et_underline_selector"
+                android:hint="@string/assistant_dial"
+                android:layout_gravity="center"
+                android:textCursorDrawable="@drawable/cursor_color"></EditText>
 
-        <Button
-            android:id="@+id/button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/call_button" />
+            <Button
+                android:id="@+id/call"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/call_button" />
 
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
