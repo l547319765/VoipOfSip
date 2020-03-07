@@ -39,14 +39,10 @@ import static android.content.ContentValues.TAG;
 import static android.widget.LinearLayout.VERTICAL;
 
 public class CallFragment extends Fragment {
-
     private CallViewModel homeViewModel;
-
     private QuickAdapter mAdapter;
-    //提示灯
-    private ImageView staticLed;
+    private ImageView mLed;
     private CoreListenerStub mCoreListener;
-    //sip地址
     private EditText mSipAddressToCall;
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -56,12 +52,12 @@ public class CallFragment extends Fragment {
         mSipAddressToCall = (EditText)root.findViewById(R.id.tel_number);
 
 
-        staticLed  = (ImageView)root.findViewById(R.id.static_led);
+        mLed  = (ImageView)root.findViewById(R.id.static_led);
         // Monitors the registration state of our account(s) and update the LED accordingly
         mCoreListener = new CoreListenerStub() {
             @Override
             public void onRegistrationStateChanged(Core core, ProxyConfig cfg, RegistrationState state, String message) {
-                updateLed(staticLed,state);
+                updateLed(state);
             }
         };
 
@@ -120,9 +116,35 @@ public class CallFragment extends Fragment {
         return root;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // The best way to use Core listeners in Activities is to add them in onResume
+        // and to remove them in onPause
+        LinphoneService.getCore().addListener(mCoreListener);
+
+        // Manually update the LED registration state, in case it has been registered before
+        // we add a chance to register the above listener
+        ProxyConfig proxyConfig = LinphoneService.getCore().getDefaultProxyConfig();
+        if (proxyConfig != null) {
+            updateLed(proxyConfig.getState());
+        } else {
+            // No account configured, we display the configuration activity
+//            startActivity(new Intent(this, ConfigureAccountActivity.class));
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        // Like I said above, remove unused Core listeners in onPause
+        LinphoneService.getCore().removeListener(mCoreListener);
+    }
 
     //更新信号灯函数
-    private void updateLed(ImageView mLed, RegistrationState state) {
+    private void updateLed(RegistrationState state) {
         switch (state) {
             case Ok: // This state means you are connected, to can make and receive calls & messages
                 mLed.setImageResource(R.drawable.led_connected);

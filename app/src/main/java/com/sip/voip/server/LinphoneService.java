@@ -11,7 +11,8 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
-import com.sip.voip.MainActivity;
+import com.sip.voip.CallActivity;
+import com.sip.voip.LinphoneManager;
 import com.sip.voip.R;
 
 import org.linphone.core.Call;
@@ -20,6 +21,8 @@ import org.linphone.core.Core;
 import org.linphone.core.CoreListenerStub;
 import org.linphone.core.Factory;
 import org.linphone.core.LogCollectionState;
+import org.linphone.core.ProxyConfig;
+import org.linphone.core.RegistrationState;
 import org.linphone.core.tools.Log;
 import org.linphone.mediastream.Version;
 
@@ -32,77 +35,109 @@ import java.util.TimerTask;
 
 public class LinphoneService extends Service {
     private static final String START_LINPHONE_LOGS = " ==== Device information dump ====";
-    // Keep a static reference to the Service so we can access it from anywhere in the app
     private static LinphoneService sInstance;
-
-    private Handler mHandler;
-    private Timer mTimer;
-
+    private static PhoneServiceCallback sPhoneServiceCallback;
     private Core mCore;
-    private CoreListenerStub mCoreListener;
-
+    public static void addCallback(PhoneServiceCallback phoneServiceCallback) {
+        sPhoneServiceCallback = phoneServiceCallback;
+    }
     public static boolean isReady() {
         return sInstance != null;
     }
-
-    public static LinphoneService getInstance() {
-        return sInstance;
-    }
-
     public static Core getCore() {
         return sInstance.mCore;
     }
+    private Handler mHandler;
+    private Timer mTimer;
+    private CoreListenerStub mCoreListener = new CoreListenerStub() {
+        /**
+         *  通话状态
+         * @param lc
+         * @param call
+         * @param cstate
+         * @param message
+         */
+        @Override
+        public void onCallStateChanged(Core lc, Call call, Call.State cstate, String message) {
+            Log.i("zss", "---- 通话状态  [ 状态：" + cstate + "  ；消息：  " + message + " ]");
+            if (cstate == Call.State.IncomingReceived) { //来电
+/*  方式一
+                Log.i("zss","----- getRemoteAddress().getUsername: " + call.getRemoteAddress().getUsername() + "  getRemoteAddress().getDomain: " +  call.getRemoteAddress().getDomain() + "  getRemoteAddress().getDisplayName:" + call.getRemoteAddress().getDisplayName() + "  getRemoteAddress().getPort:" + call.getRemoteAddress().getPort() + "  getUsername: " + call.getRemoteAddress().getPassword() );
+                Log.i("zss", "----getTlsCert: " + authInfo[i].getTlsCert() + "   getTlsCertPath:" + authInfo[i].getTlsCertPath());
+                Intent intent = new Intent(LinphoneService.this, CustomReceiveActivity.class);
+                CustomReceiveActivity.getReceivedCallFromService(call);
+                ReceiveDataModel receiveDataModel = new ReceiveDataModel();
+                receiveDataModel.setActiveCall(false);
+                receiveDataModel.setNum(call.getRemoteAddress().getUsername());
+                intent.putExtra("ReceiveDataModel", receiveDataModel);
 
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+
+                if (null != sPhoneServiceCallback) {
+                    Log.i("zss", "---- sPhoneServiceCallback ");
+                    sPhoneServiceCallback.incomingCall(call);
+                }
+*/
+/*方式原
+                Toast.makeText(LinphoneService.this, "Incoming call received, answering it automatically", Toast.LENGTH_LONG).show();
+                CallParams params = getCore().createCallParams(call);
+                params.enableVideo(true);
+                call.acceptWithParams(params);
+ */
+            } else if (cstate == Call.State.OutgoingProgress) { //正在呼叫
+
+            } else if (cstate == Call.State.Connected) { //接通或者拒绝
+//                if (null != sPhoneServiceCallback) {
+//                    sPhoneServiceCallback.callConnected();
+//                }
+//方式原
+//                    Intent intent = new Intent(LinphoneService.this, CallActivity.class);
+//                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    startActivity(intent);
+            } else if (cstate == Call.State.End || (cstate == Call.State.Released)) { //挂断，未接
+                if (null != sPhoneServiceCallback) {
+                    sPhoneServiceCallback.callReleased();
+                }
+            }
+        }
+
+        /**
+         * 注册状态
+         * @param lc
+         * @param cfg
+         * @param cstate
+         * @param message
+         */
+        @Override
+        public void onRegistrationStateChanged(Core lc, ProxyConfig cfg, RegistrationState cstate, String message) {
+            if (null != sPhoneServiceCallback) {
+                sPhoneServiceCallback.onRegistrationStateChanged(lc, cfg, cstate, message);
+            }
+        }
+    };
+    public static LinphoneService getInstance() {
+        return sInstance;
+    }
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
-
     @Override
     public void onCreate() {
         super.onCreate();
-
-        // The first call to liblinphone SDK MUST BE to a Factory method
-        // So let's enable the library debug logs & log collection
+//        LinphoneManager.createAndStart(LinphoneService.this, mCoreListnerStub);
         String basePath = getFilesDir().getAbsolutePath();
         Factory.instance().setLogCollectionPath(basePath);
         Factory.instance().enableLogCollection(LogCollectionState.Enabled);
         Factory.instance().setDebugMode(true, getString(R.string.app_name));
-
-        // Dump some useful information about the device we're running on
         Log.i(START_LINPHONE_LOGS);
         dumpDeviceInformation();
         dumpInstalledLinphoneInformation();
-
         mHandler = new Handler();
-        // This will be our main Core listener, it will change activities depending on events
-        mCoreListener = new CoreListenerStub() {
-            @Override
-            public void onCallStateChanged(Core core, Call call, Call.State state, String message) {
-                Toast.makeText(LinphoneService.this, message, Toast.LENGTH_SHORT).show();
-
-                if (state == Call.State.IncomingReceived) {
-                    Toast.makeText(LinphoneService.this, "Incoming call received, answering it automatically", Toast.LENGTH_LONG).show();
-                    // For this sample we will automatically answer incoming calls
-                    CallParams params = getCore().createCallParams(call);
-                    params.enableVideo(true);
-                    call.acceptWithParams(params);
-                } else if (state == Call.State.Connected) {
-                    // This stats means the call has been established, let's start the call activity
-                    Intent intent = new Intent(LinphoneService.this, MainActivity.class);
-                    // As it is the Service that is starting the activity, we have to give this flag
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                }
-            }
-        };
-
         try {
-            // Let's copy some RAW resources to the device
-            // The default config file must only be installed once (the first time)
             copyIfNotExist(R.raw.linphonerc_default, basePath + "/.linphonerc");
-            // The factory config is used to override any other setting, let's copy it each time
             copyFromPackage(R.raw.linphonerc_factory, "linphonerc");
         } catch (IOException ioe) {
             Log.e(ioe);
@@ -118,25 +153,17 @@ public class LinphoneService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-
-        // If our Service is already running, no need to continue
         if (sInstance != null) {
             return START_STICKY;
         }
-
-        // Our Service has been started, we can keep our reference on it
-        // From now one the Launcher will be able to call onServiceReady()
         sInstance = this;
 
         // Core must be started after being created and configured
         mCore.start();
         // We also MUST call the iterate() method of the Core on a regular basis
-        TimerTask lTask =
-                new TimerTask() {
+        TimerTask lTask = new TimerTask() {
                     @Override
-                    public void run() {
-                        mHandler.post(
-                                new Runnable() {
+                    public void run() { mHandler.post(new Runnable() {
                                     @Override
                                     public void run() {
                                         if (mCore != null) {
@@ -151,7 +178,6 @@ public class LinphoneService extends Service {
 
         return START_STICKY;
     }
-
     @Override
     public void onDestroy() {
         mCore.removeListener(mCoreListener);
@@ -165,7 +191,6 @@ public class LinphoneService extends Service {
 
         super.onDestroy();
     }
-
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         // For this sample we will kill the Service at the same time we kill the app
@@ -200,7 +225,6 @@ public class LinphoneService extends Service {
         sb.append("\n");
         Log.i(sb.toString());
     }
-
     private void dumpInstalledLinphoneInformation() {
         PackageInfo info = null;
         try {
@@ -217,14 +241,12 @@ public class LinphoneService extends Service {
             Log.i("[Service] Linphone version is unknown");
         }
     }
-
     private void copyIfNotExist(int ressourceId, String target) throws IOException {
         File lFileToCopy = new File(target);
         if (!lFileToCopy.exists()) {
             copyFromPackage(ressourceId, lFileToCopy.getName());
         }
     }
-
     private void copyFromPackage(int ressourceId, String target) throws IOException {
         FileOutputStream lOutputStream = openFileOutput(target, 0);
         InputStream lInputStream = getResources().openRawResource(ressourceId);

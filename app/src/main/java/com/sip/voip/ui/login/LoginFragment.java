@@ -116,16 +116,6 @@ public class LoginFragment extends Fragment {
 
 
 
-
-
-
-
-
-
-
-
-
-
     public List<Map<String,String>> initData(){
         List<Map<String,String>> ls = new ArrayList<Map<String,String>>();
         HashMap<String,String> itemData= new HashMap<>();

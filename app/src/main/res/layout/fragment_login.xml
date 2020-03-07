@@ -21,6 +21,12 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/assistant_generic_account" />
+            <Button
+                android:id="@+id/login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/login" />
 
             <Button
                 android:id="@+id/registered"
@@ -62,13 +68,6 @@
 
 
             </androidx.recyclerview.widget.RecyclerView>
-
-            <Button
-                android:id="@+id/login"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/login" />
         </LinearLayout>
     </LinearLayout>
 

@@ -172,6 +172,7 @@
                             android:layout_height="wrap_content"
                             android:layout_margin="5dp"
                             android:textColor="@color/colorPrimary"
+                            android:checked="true"
                             android:text="@string/pref_transport_tcp" />
 
                         <RadioButton
@@ -180,7 +181,6 @@
                             android:layout_height="wrap_content"
                             android:layout_margin="5dp"
                             android:textColor="@color/colorPrimary"
-                            android:checked="true"
                             android:text="@string/pref_transport_tls" />
 
                     </RadioGroup>
