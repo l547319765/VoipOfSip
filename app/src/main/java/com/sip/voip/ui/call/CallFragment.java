@@ -51,7 +51,6 @@ public class CallFragment extends Fragment {
 
         mSipAddressToCall = (EditText)root.findViewById(R.id.tel_number);
 
-
         mLed  = (ImageView)root.findViewById(R.id.static_led);
         // Monitors the registration state of our account(s) and update the LED accordingly
         mCoreListener = new CoreListenerStub() {
@@ -78,10 +77,6 @@ public class CallFragment extends Fragment {
                 }
             }
         });
-
-
-
-
 
 
         RecyclerView callRecords = (RecyclerView)root.findViewById(R.id.call_records);

@@ -29,11 +29,11 @@
                 android:text="@string/login" />
 
             <Button
-                android:id="@+id/registered"
+                android:id="@+id/logout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/registered" />
+                android:text="@string/logout" />
 
         </LinearLayout>
 

@@ -30,35 +30,22 @@ import java.util.List;
 import java.util.Map;
 
 public class LoginFragment extends Fragment {
-
     private LoginViewModel loginViewModel;
-
     private QuickAdapter mAdapter;
-
     private AccountCreator mAccountCreator;
-
     private View root ;
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
-
         root = inflater.inflate(R.layout.fragment_login, container, false);
-
         mAccountCreator = LinphoneService.getCore().createAccountCreator(null);
-
         RecyclerView loginRecords = (RecyclerView)root.findViewById(R.id.login_list);
-
         LinearLayoutManager layoutManager = new LinearLayoutManager(root.getContext());
-
         //设置布局管理器
         loginRecords.setLayoutManager(layoutManager);
         //设置为垂直布局，这也是默认的
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-
         List<Map<String,String>> ls = initData();
-
         mAdapter = new QuickAdapter<Map<String,String>>(ls) {
             @Override
             public int getLayoutId(int viewType) {
@@ -80,11 +67,8 @@ public class LoginFragment extends Fragment {
 //        callRecords.addItemDecoration( new DividerGridItemDecoration(this ));
         //设置增加或删除条目的动画
         loginRecords.setItemAnimator( new DefaultItemAnimator());
-
         Button login = (Button)root.findViewById(R.id.login);
-
-        Button registered = (Button)root.findViewById(R.id.registered);
-
+        Button Logout = (Button)root.findViewById(R.id.logout);
         login.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -92,30 +76,15 @@ public class LoginFragment extends Fragment {
                 startActivity(intent);
             }
         });
-
-
-
+        Logout.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+//                Intent intent = new Intent(root.getContext(), LoginToSipActivity.class);
+//                startActivity(intent);
+            }
+        });
         return root;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public List<Map<String,String>> initData(){
         List<Map<String,String>> ls = new ArrayList<Map<String,String>>();
         HashMap<String,String> itemData= new HashMap<>();
