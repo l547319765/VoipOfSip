@@ -69,7 +69,6 @@ public class PhoneVoiceUtils {
     //取消注册
     public void unRegisterUserAuth() {
         mLinphoneCore.clearAllAuthInfo();
-
     }
 
     /**

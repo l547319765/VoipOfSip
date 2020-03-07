@@ -27,8 +27,7 @@ public class LauncherActivity extends Activity {
             onServiceReady();
         } else {
             // If it's not, let's start it
-            startService(
-                    new Intent().setClass(this, LinphoneService.class));
+            startService(new Intent().setClass(this, LinphoneService.class));
             // And wait for it to be ready, so we can safely use it afterwards
             new ServiceWaitThread().start();
         }

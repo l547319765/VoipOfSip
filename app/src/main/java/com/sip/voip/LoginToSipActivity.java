@@ -9,6 +9,7 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.sip.voip.server.LinphoneService;
+import com.sip.voip.utils.PhoneVoiceUtils;
 
 import org.linphone.core.AccountCreator;
 import org.linphone.core.Core;
@@ -23,6 +24,7 @@ public class LoginToSipActivity extends Activity {
     private RadioGroup mTransport;
     private Button mConnect;
     private CoreListenerStub mCoreListener;
+    private PhoneVoiceUtils phoneVoiceUtils;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,7 +35,7 @@ public class LoginToSipActivity extends Activity {
         mDomain    = (EditText)findViewById(R.id.assistant_domain) ;
         mTransport = findViewById(R.id.assistant_transports);
         mConnect = findViewById(R.id.assistant_login);
-
+        phoneVoiceUtils = PhoneVoiceUtils.getInstance();
         mConnect.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
@@ -41,7 +43,6 @@ public class LoginToSipActivity extends Activity {
                         configureAccount();
                     }
                 });
-
         mCoreListener = new CoreListenerStub() {
             @Override
             public void onRegistrationStateChanged(Core core, ProxyConfig cfg, RegistrationState state, String message) {
@@ -80,27 +81,19 @@ public class LoginToSipActivity extends Activity {
     }
 
     private void configureAccount() {
-        // At least the 3 below values are required
-        mAccountCreator.setUsername(mUsername.getText().toString());
-        mAccountCreator.setDomain(mDomain.getText().toString());
-        mAccountCreator.setPassword(mPassword.getText().toString());
-
-        // By default it will be UDP if not set, but TLS is strongly recommended
+        TransportType tst = TransportType.Udp;
         switch (mTransport.getCheckedRadioButtonId()) {
             case R.id.transport_udp:
-                mAccountCreator.setTransport(TransportType.Udp);
+                tst = TransportType.Udp;
                 break;
             case R.id.transport_tcp:
-                mAccountCreator.setTransport(TransportType.Tcp);
+                tst = TransportType.Tcp;
                 break;
             case R.id.transport_tls:
-                mAccountCreator.setTransport(TransportType.Tls);
+                tst = TransportType.Tls;
                 break;
         }
-
-        // This will automatically create the proxy config and auth info and add them to the Core
-        ProxyConfig cfg = mAccountCreator.createProxyConfig();
-        // Make sure the newly created one is the default
-        LinphoneService.getCore().setDefaultProxyConfig(cfg);
+        phoneVoiceUtils.registerUserAuth(mUsername.getText().toString(),mPassword.getText().toString()
+                ,mDomain.getText().toString(),tst);
     }
 }

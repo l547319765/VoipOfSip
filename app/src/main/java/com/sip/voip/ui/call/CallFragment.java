@@ -134,7 +134,6 @@ public class CallFragment extends Fragment {
 //            startActivity(new Intent(this, ConfigureAccountActivity.class));
         }
     }
-
     @Override
     public void onPause() {
         super.onPause();
@@ -142,7 +141,6 @@ public class CallFragment extends Fragment {
         // Like I said above, remove unused Core listeners in onPause
         LinphoneService.getCore().removeListener(mCoreListener);
     }
-
     //更新信号灯函数
     private void updateLed(RegistrationState state) {
         switch (state) {
@@ -161,8 +159,6 @@ public class CallFragment extends Fragment {
                 break;
         }
     }
-
-
     public List<Map<String,String>> initData(){
         List<Map<String,String>> ls = new ArrayList<Map<String,String>>();
         HashMap<String,String> itemData= new HashMap<>();
@@ -177,8 +173,4 @@ public class CallFragment extends Fragment {
         }
         return  ls;
     }
-
-
-
-
 }
