@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    xmlns:font-size="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
     <ScrollView
         android:layout_width="match_parent"
@@ -188,18 +190,17 @@
                 </LinearLayout>
 
             </GridLayout>
-
-            <Button
+            <TextView
                 android:id="@+id/assistant_login"
                 android:text="@string/assistant_login"
-                android:textColor="@color/dark_grey_color"
+                android:textColor="@drawable/assistant_button_text_color"
                 style="@style/button_font"
+                android:background="@drawable/assistant_button"
                 android:layout_gravity="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:padding="10dp" />
-
+                android:padding="10dp"/>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

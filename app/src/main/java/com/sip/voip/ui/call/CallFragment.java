@@ -1,8 +1,10 @@
 package com.sip.voip.ui.call;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +12,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -19,66 +22,91 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.sip.voip.LoginToSipActivity;
 import com.sip.voip.R;
 import com.sip.voip.common.RecyclerView.QuickAdapter;
+import com.sip.voip.server.LinphoneManager;
 import com.sip.voip.server.LinphoneService;
+import com.sip.voip.utils.PhoneVoiceUtils;
 
 import org.linphone.core.Address;
+import org.linphone.core.AuthInfo;
 import org.linphone.core.CallParams;
 import org.linphone.core.Core;
 import org.linphone.core.CoreListenerStub;
 import org.linphone.core.ProxyConfig;
 import org.linphone.core.RegistrationState;
+import org.linphone.core.tools.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static android.content.ContentValues.TAG;
-import static android.widget.LinearLayout.VERTICAL;
-
 public class CallFragment extends Fragment {
-    private CallViewModel homeViewModel;
+//    private CallViewModel homeViewModel;
     private QuickAdapter mAdapter;
     private ImageView mLed;
     private CoreListenerStub mCoreListener;
     private EditText mSipAddressToCall;
+    private TextView mLoginUser;
+    private AuthInfo[] authInfos;
+    private Button logOut;
+    private Button call;
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        homeViewModel = new ViewModelProvider(this).get(CallViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_call, container, false);
-
-        mSipAddressToCall = (EditText)root.findViewById(R.id.tel_number);
-
-        mLed  = (ImageView)root.findViewById(R.id.static_led);
-        // Monitors the registration state of our account(s) and update the LED accordingly
+//        homeViewModel = new ViewModelProvider(this).get(CallViewModel.class);
+        final View root = inflater.inflate(R.layout.fragment_call, container, false);
+        mLoginUser = root.findViewById(R.id.my_login_user);
+        call = root.findViewById(R.id.call);
+        logOut = root.findViewById(R.id.log_out);
+        mSipAddressToCall = root.findViewById(R.id.tel_number);
+        mLed  = root.findViewById(R.id.static_led);
+        populateSliderContent();
         mCoreListener = new CoreListenerStub() {
             @Override
-            public void onRegistrationStateChanged(Core core, ProxyConfig cfg, RegistrationState state, String message) {
-                updateLed(state);
+            public void onRegistrationStateChanged(final Core core, final ProxyConfig cfg, final RegistrationState state, String message) {
+                if (core.getProxyConfigList() == null || core.getAuthInfoList().length == 0) {
+                    showNoAccountConfigured();
+                    return;
+                }
+                if ((core.getDefaultProxyConfig() != null && core.getDefaultProxyConfig().equals(cfg)) || core.getDefaultProxyConfig() == null) {
+                            updateLed(state,core);
+                }
+                try {
+                    mLoginUser.setOnClickListener(
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Core core = LinphoneManager.getCore();
+                                    if (core != null) {
+                                        core.refreshRegisters();
+                                    }
+                                }
+                            });
+                } catch (IllegalStateException ise) {
+                    Log.e(ise);
+                }
             }
         };
 
-        Button call = (Button)root.findViewById(R.id.call);
 
+        logOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkLogOut(root.getContext());
+            }
+        });
         call.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Core core = LinphoneService.getCore();
                 Address addressToCall = core.interpretUrl(mSipAddressToCall.getText().toString());
                 CallParams params = core.createCallParams(null);
-
-//                Switch videoEnabled = findViewById(R.id.call_with_video);
-//                params.enableVideo(videoEnabled.isChecked());
-
                 if (addressToCall != null) {
-                    core.inviteAddressWithParams(addressToCall, params);
-                }
+                    core.inviteAddressWithParams(addressToCall, params); }
             }
         });
-
-
         RecyclerView callRecords = (RecyclerView)root.findViewById(R.id.call_records);
         LinearLayoutManager layoutManager = new LinearLayoutManager(root.getContext());
         //设置布局管理器
@@ -91,7 +119,6 @@ public class CallFragment extends Fragment {
             public int getLayoutId(int viewType) {
                 return R.layout.call_record_item;
             }
-
             @Override
             public void convert(VH holder, Map<String,String> data, int position) {
                 holder.setText(R.id.sip_domain, data.get("sip_domain"));
@@ -114,17 +141,19 @@ public class CallFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        Core core = LinphoneManager.getCore();
 
         // The best way to use Core listeners in Activities is to add them in onResume
         // and to remove them in onPause
-        LinphoneService.getCore().addListener(mCoreListener);
+        core.addListener(mCoreListener);
 
         // Manually update the LED registration state, in case it has been registered before
         // we add a chance to register the above listener
         ProxyConfig proxyConfig = LinphoneService.getCore().getDefaultProxyConfig();
         if (proxyConfig != null) {
-            updateLed(proxyConfig.getState());
+            mCoreListener.onRegistrationStateChanged(core, proxyConfig, proxyConfig.getState(), null);
         } else {
+            showNoAccountConfigured();
             // No account configured, we display the configuration activity
 //            startActivity(new Intent(this, ConfigureAccountActivity.class));
         }
@@ -137,7 +166,13 @@ public class CallFragment extends Fragment {
         LinphoneService.getCore().removeListener(mCoreListener);
     }
     //更新信号灯函数
-    private void updateLed(RegistrationState state) {
+    private void updateLed(RegistrationState state,Core core) {
+        authInfos = core.getAuthInfoList();
+        if(authInfos.length>0){
+            mLoginUser.setText(authInfos[0].getUsername());
+        }else{
+            mLoginUser.setText(R.string.no_login_account);
+        }
         switch (state) {
             case Ok: // This state means you are connected, to can make and receive calls & messages
                 mLed.setImageResource(R.drawable.led_connected);
@@ -153,7 +188,9 @@ public class CallFragment extends Fragment {
                 mLed.setImageResource(R.drawable.led_inprogress);
                 break;
         }
+
     }
+
     public List<Map<String,String>> initData(){
         List<Map<String,String>> ls = new ArrayList<Map<String,String>>();
         HashMap<String,String> itemData= new HashMap<>();
@@ -168,4 +205,41 @@ public class CallFragment extends Fragment {
         }
         return  ls;
     }
+
+    private void checkLogOut(Context context){
+        AlertDialog.Builder bb = new AlertDialog.Builder(context);
+        bb.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                PhoneVoiceUtils.getInstance().unRegisterUserAuth();
+                startActivity(
+                        new Intent()
+                                .setClass(
+                                        getActivity(),
+                                        LoginToSipActivity.class));
+//                getActivity().finish();
+                }
+            });
+        bb.setNegativeButton("取消",new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        bb.setMessage("是否确认注销");
+        bb.setTitle("提示");
+        bb.show();
+    }
+
+    private void populateSliderContent() {
+        if (LinphoneManager.getCore().getProxyConfigList().length == 0) {
+            showNoAccountConfigured();
+        }
+    }
+
+    private void showNoAccountConfigured() {
+        mLed.setImageResource(R.drawable.led_disconnected);
+        mLoginUser.setText(getString(R.string.no_login_account));
+    }
+
 }

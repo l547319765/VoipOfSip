@@ -14,6 +14,7 @@
     <string name="logout">注销</string>
     <string name="domain">域名</string>
     <string name="dial">拨号:</string>
+    <string name="no_login_account">未登陆账号</string>
     <string name="sip_user">sip登陆用户</string>
     <string name="call_record">通话记录</string>
     <string name="assistant_login">登陆</string>

@@ -1,6 +1,6 @@
 package com.sip.voip.utils;
 
-import com.sip.voip.LinphoneManager;
+import com.sip.voip.server.LinphoneManager;
 
 import org.linphone.core.AccountCreator;
 import org.linphone.core.Address;
@@ -68,7 +68,9 @@ public class PhoneVoiceUtils {
 
     //取消注册
     public void unRegisterUserAuth() {
+        mLinphoneCore.setDefaultProxyConfig(null);
         mLinphoneCore.clearAllAuthInfo();
+        mLinphoneCore.clearProxyConfig();
     }
 
     /**

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 public class LoginFragment extends Fragment {
+
     private LoginViewModel loginViewModel;
     private QuickAdapter mAdapter;
     private AccountCreator mAccountCreator;
@@ -68,7 +69,7 @@ public class LoginFragment extends Fragment {
         //设置增加或删除条目的动画
         loginRecords.setItemAnimator( new DefaultItemAnimator());
         Button login = (Button)root.findViewById(R.id.login);
-        Button Logout = (Button)root.findViewById(R.id.logout);
+        Button registered = (Button)root.findViewById(R.id.registered);
         login.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -76,7 +77,7 @@ public class LoginFragment extends Fragment {
                 startActivity(intent);
             }
         });
-        Logout.setOnClickListener(new View.OnClickListener(){
+        registered.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
 //                Intent intent = new Intent(root.getContext(), LoginToSipActivity.class);
@@ -85,6 +86,9 @@ public class LoginFragment extends Fragment {
         });
         return root;
     }
+
+
+
     public List<Map<String,String>> initData(){
         List<Map<String,String>> ls = new ArrayList<Map<String,String>>();
         HashMap<String,String> itemData= new HashMap<>();
