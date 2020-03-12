@@ -6,9 +6,12 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.sip.voip.server.LinphoneManager;
 import com.sip.voip.server.LinphoneService;
 import com.sip.voip.utils.PhoneVoiceUtils;
 import org.linphone.core.AccountCreator;
@@ -25,10 +28,19 @@ public class LoginToSipActivity extends Activity implements TextWatcher {
     private TextView mConnect;
     private CoreListenerStub mCoreListener;
     private PhoneVoiceUtils phoneVoiceUtils;
+    protected ImageView mBack;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_window);
+        mBack = findViewById(R.id.back);
+        mBack.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        finish();
+                    }
+                });
         mAccountCreator = LinphoneService.getCore().createAccountCreator(null);
         mUsername  = findViewById(R.id.assistant_username) ;
         mUsername.addTextChangedListener(this);
@@ -115,6 +127,7 @@ public class LoginToSipActivity extends Activity implements TextWatcher {
 
     @Override
     public void afterTextChanged(Editable s) {
+        LinphoneManager.getCore().getAudioPayloadTypes();
 
     }
 }

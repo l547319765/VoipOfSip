@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,7 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CallFragment extends Fragment {
+public class CallFragment extends Fragment implements TextWatcher {
 //    private CallViewModel homeViewModel;
     private QuickAdapter mAdapter;
     private ImageView mLed;
@@ -51,16 +53,22 @@ public class CallFragment extends Fragment {
     private EditText mSipAddressToCall;
     private TextView mLoginUser;
     private AuthInfo[] authInfos;
-    private Button logOut;
-    private Button call;
+    private TextView logOut;
+    private TextView call;
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 //        homeViewModel = new ViewModelProvider(this).get(CallViewModel.class);
         final View root = inflater.inflate(R.layout.fragment_call, container, false);
         mLoginUser = root.findViewById(R.id.my_login_user);
+        mLoginUser.addTextChangedListener(this);
         call = root.findViewById(R.id.call);
+        call.addTextChangedListener(this);
+        call.setEnabled(false);
         logOut = root.findViewById(R.id.log_out);
+        logOut.addTextChangedListener(this);
+        logOut.setEnabled(false);
         mSipAddressToCall = root.findViewById(R.id.tel_number);
+        mSipAddressToCall.addTextChangedListener(this);
         mLed  = root.findViewById(R.id.static_led);
         populateSliderContent();
         mCoreListener = new CoreListenerStub() {
@@ -97,6 +105,7 @@ public class CallFragment extends Fragment {
                 checkLogOut(root.getContext());
             }
         });
+
         call.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -240,6 +249,22 @@ public class CallFragment extends Fragment {
     private void showNoAccountConfigured() {
         mLed.setImageResource(R.drawable.led_disconnected);
         mLoginUser.setText(getString(R.string.no_login_account));
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        call.setEnabled(!mSipAddressToCall.getText().toString().isEmpty());
+        logOut.setEnabled(!mLoginUser.getText().toString().equals(getString(R.string.no_login_account)));
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+
     }
 
 }
