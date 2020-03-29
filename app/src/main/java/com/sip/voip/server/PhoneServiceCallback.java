@@ -24,19 +24,19 @@ public abstract class PhoneServiceCallback {
     /**
      * 电话接通
      */
-    public void callConnected() {
+    public void callConnected(Call linphoneCall) {
     }
 
     /**
      * 电话被挂断
      */
-    public void callReleased() {
+    public void callReleased(Call linphoneCall) {
     }
 
     /**
      * 正在呼叫
      */
-    public void OutgoingProgress(){
+    public void OutgoingProgress(Call linphoneCall){
     }
 
 }

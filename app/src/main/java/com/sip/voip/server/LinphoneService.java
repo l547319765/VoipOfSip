@@ -6,6 +6,9 @@ import android.os.IBinder;
 import android.widget.Toast;
 
 import com.sip.voip.CallActivity;
+import com.sip.voip.bean.CallRecordsItem;
+import com.sip.voip.utils.CallRecordFactory;
+import com.sip.voip.utils.DatabaseHelper;
 
 import org.linphone.core.Call;
 import org.linphone.core.CallParams;
@@ -15,9 +18,13 @@ import org.linphone.core.ProxyConfig;
 import org.linphone.core.RegistrationState;
 import org.linphone.core.tools.Log;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class LinphoneService extends Service {
     private static LinphoneService sInstance;
     private static PhoneServiceCallback sPhoneServiceCallback;
+    private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");// HH:mm:ss
     private Core mCore;
     public static void addCallback(PhoneServiceCallback phoneServiceCallback) {
         sPhoneServiceCallback = phoneServiceCallback;
@@ -44,40 +51,27 @@ public class LinphoneService extends Service {
         public void onCallStateChanged(Core lc, Call call, Call.State cstate, String message) {
             Log.i("zss", "---- 通话状态  [ 状态：" + cstate + "  ；消息：  " + message + " ]");
             if (cstate == Call.State.IncomingReceived) { //来电
-/*  方式一
-                Log.i("zss","----- getRemoteAddress().getUsername: " + call.getRemoteAddress().getUsername() + "  getRemoteAddress().getDomain: " +  call.getRemoteAddress().getDomain() + "  getRemoteAddress().getDisplayName:" + call.getRemoteAddress().getDisplayName() + "  getRemoteAddress().getPort:" + call.getRemoteAddress().getPort() + "  getUsername: " + call.getRemoteAddress().getPassword() );
-                Log.i("zss", "----getTlsCert: " + authInfo[i].getTlsCert() + "   getTlsCertPath:" + authInfo[i].getTlsCertPath());
-                Intent intent = new Intent(LinphoneService.this, CustomReceiveActivity.class);
-                CustomReceiveActivity.getReceivedCallFromService(call);
-                ReceiveDataModel receiveDataModel = new ReceiveDataModel();
-                receiveDataModel.setActiveCall(false);
-                receiveDataModel.setNum(call.getRemoteAddress().getUsername());
-                intent.putExtra("ReceiveDataModel", receiveDataModel);
-
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-
-                if (null != sPhoneServiceCallback) {
-                    Log.i("zss", "---- sPhoneServiceCallback ");
-                    sPhoneServiceCallback.incomingCall(call);
-                }
-*/
                 Toast.makeText(LinphoneService.this, "Incoming call received, answering it automatically", Toast.LENGTH_LONG).show();
                 CallParams params = getCore().createCallParams(call);
-                params.enableVideo(true);
+                params.enableVideo(false);
                 call.acceptWithParams(params);
+                if (null != sPhoneServiceCallback) {
+                    sPhoneServiceCallback.incomingCall(call);
+                }
             } else if (cstate == Call.State.OutgoingProgress) { //正在呼叫
-
+                if (null != sPhoneServiceCallback) {
+                    sPhoneServiceCallback.OutgoingProgress(call);
+                }
             } else if (cstate == Call.State.Connected) { //接通或者拒绝
-//                if (null != sPhoneServiceCallback) {
-//                    sPhoneServiceCallback.callConnected();
-//                }
-                    Intent intent = new Intent(LinphoneService.this, CallActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
+                Intent intent = new Intent(LinphoneService.this, CallActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                if (null != sPhoneServiceCallback) {
+                    sPhoneServiceCallback.callConnected(call);
+                }
             } else if (cstate == Call.State.End || (cstate == Call.State.Released)) { //挂断，未接
                 if (null != sPhoneServiceCallback) {
-                    sPhoneServiceCallback.callReleased();
+                    sPhoneServiceCallback.callReleased(call);
                 }
             }
         }
@@ -106,6 +100,32 @@ public class LinphoneService extends Service {
         super.onCreate();
 //        Log.i("zss", "---- Service_onCreate ");
         LinphoneManager.createAndStart(LinphoneService.this, mCoreListener);
+        LinphoneService.addCallback(new PhoneServiceCallback() {
+            @Override
+            public void onRegistrationStateChanged(Core lc, ProxyConfig cfg, RegistrationState cstate, String message) {
+                super.onRegistrationStateChanged(lc, cfg, cstate, message);
+            }
+
+            @Override
+            public void incomingCall(Call linphoneCall) {
+                super.incomingCall(linphoneCall);
+            }
+            @Override
+            public void OutgoingProgress(Call linphoneCall) {
+                super.OutgoingProgress(linphoneCall);
+            }
+
+            @Override
+            public void callConnected(Call linphoneCall) {
+                super.callConnected(linphoneCall);
+            }
+
+            @Override
+            public void callReleased(Call linphoneCall) {
+                super.callReleased(linphoneCall);
+                linphoneCall.getRemoteAddress();
+            }
+        });
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -116,8 +136,6 @@ public class LinphoneService extends Service {
             return START_STICKY;
         }
         sInstance = this;
-
-
         return START_STICKY;
     }
     @Override

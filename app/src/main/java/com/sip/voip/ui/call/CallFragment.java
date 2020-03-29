@@ -26,9 +26,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.sip.voip.LoginToSipActivity;
 import com.sip.voip.R;
+import com.sip.voip.bean.CallRecordsItem;
 import com.sip.voip.common.RecyclerView.QuickAdapter;
 import com.sip.voip.server.LinphoneManager;
 import com.sip.voip.server.LinphoneService;
+import com.sip.voip.utils.DatabaseHelper;
 import com.sip.voip.utils.PhoneVoiceUtils;
 
 import org.linphone.core.Address;
@@ -97,15 +99,12 @@ public class CallFragment extends Fragment implements TextWatcher {
                 }
             }
         };
-
-
         logOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 checkLogOut(root.getContext());
             }
         });
-
         call.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -116,33 +115,54 @@ public class CallFragment extends Fragment implements TextWatcher {
                     core.inviteAddressWithParams(addressToCall, params); }
             }
         });
-        RecyclerView callRecords = (RecyclerView)root.findViewById(R.id.call_records);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(root.getContext());
-        //设置布局管理器
-        callRecords.setLayoutManager(layoutManager);
-        //设置为垂直布局，这也是默认的
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        List<Map<String,String>> ls = initData();
-        mAdapter = new QuickAdapter<Map<String,String>>(ls) {
+        Button login = (Button)root.findViewById(R.id.login);
+        login.setOnClickListener(new View.OnClickListener(){
             @Override
-            public int getLayoutId(int viewType) {
-                return R.layout.call_record_item;
+            public void onClick(View v){
+                Intent intent = new Intent(root.getContext(), LoginToSipActivity.class);
+                startActivity(intent);
             }
-            @Override
-            public void convert(VH holder, Map<String,String> data, int position) {
-                holder.setText(R.id.sip_domain, data.get("sip_domain"));
-                holder.setText(R.id.in_or_out, data.get("in_or_out"));
-                holder.setText(R.id.start_time, data.get("start_time"));
-                holder.setText(R.id.connect_situation, data.get("connect_situation"));
-//                holder.itemView.setOnClickListener(); 此处还可以添加点击事件
-            }
-        };
-        //设置Adapter
-        callRecords.setAdapter(mAdapter);
-        //设置分隔线
-//        callRecords.addItemDecoration( new DividerGridItemDecoration(this ));
-        //设置增加或删除条目的动画
-        callRecords.setItemAnimator( new DefaultItemAnimator());
+        });
+//        RecyclerView callRecords = (RecyclerView)root.findViewById(R.id.call_records);
+//        LinearLayoutManager layoutManager = new LinearLayoutManager(root.getContext());
+//        //设置布局管理器
+//        callRecords.setLayoutManager(layoutManager);
+//        //设置为垂直布局，这也是默认的
+//        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+//        List<CallRecordsItem> callRecordsItems= DatabaseHelper.selectCallRecord(LinphoneManager.getDatabaseHelper().getWritableDatabase());
+//        mAdapter = new QuickAdapter<CallRecordsItem>(callRecordsItems) {
+//            @Override
+//            public int getLayoutId(int viewType) {
+//                return R.layout.call_record_item;
+//            }
+//            @Override
+//            public void convert(final VH holder, CallRecordsItem data, int position) {
+//                holder.setText(R.id.sip_domain, data.getCallSip());
+//                holder.setText(R.id.in_or_out, data.getInOrOut());
+//                holder.setText(R.id.start_time, data.getStartTime());
+//                holder.setText(R.id.connect_situation, data.getConnectSituation());
+//                holder.itemView.setOnClickListener(new View.OnClickListener(){
+//                    @Override
+//                    public void onClick(View v) {
+//
+//                        TextView textView = holder.getView(R.id.sip_domain);
+//                        checkCall(root.getContext(),textView);
+//                    }
+//                });
+//                holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+//                    @Override
+//                    public boolean onLongClick(View v) {
+//                        return false;
+//                    }
+//                });
+//            }
+//        };
+//        //设置Adapter
+//        callRecords.setAdapter(mAdapter);
+//        //设置分隔线
+////        callRecords.addItemDecoration( new DividerGridItemDecoration(this ));
+//        //设置增加或删除条目的动画
+//        callRecords.setItemAnimator( new DefaultItemAnimator());
 
         return root;
     }
@@ -204,9 +224,9 @@ public class CallFragment extends Fragment implements TextWatcher {
         List<Map<String,String>> ls = new ArrayList<Map<String,String>>();
         HashMap<String,String> itemData= new HashMap<>();
         itemData.put("sip_domain","120.25.237.138:111");
-        itemData.put("in_or_out","已接通");
-        itemData.put("start_time","18：11PM");
         itemData.put("connect_situation","拨入");
+        itemData.put("start_time","18：11PM");
+        itemData.put("in_or_out","已接通");
         ls.add(itemData);
         ls.add(itemData);
         for (int i = 0; i < 15; i++) {
@@ -226,7 +246,6 @@ public class CallFragment extends Fragment implements TextWatcher {
                                 .setClass(
                                         getActivity(),
                                         LoginToSipActivity.class));
-//                getActivity().finish();
                 }
             });
         bb.setNegativeButton("取消",new DialogInterface.OnClickListener() {
@@ -236,6 +255,29 @@ public class CallFragment extends Fragment implements TextWatcher {
             }
         });
         bb.setMessage("是否确认注销");
+        bb.setTitle("提示");
+        bb.show();
+    }
+    private void checkCall(Context context,TextView v){
+        final String sip = v.getText().toString();
+        AlertDialog.Builder bb = new AlertDialog.Builder(context);
+        bb.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Core core = LinphoneService.getCore();
+                Address addressToCall = core.interpretUrl(sip);
+                CallParams params = core.createCallParams(null);
+                if (addressToCall != null) {
+                    core.inviteAddressWithParams(addressToCall, params); }
+            }
+        });
+        bb.setNegativeButton("取消",new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        bb.setMessage("是否确认拨打");
         bb.setTitle("提示");
         bb.show();
     }

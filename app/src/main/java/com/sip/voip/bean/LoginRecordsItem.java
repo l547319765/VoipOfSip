@@ -4,6 +4,7 @@ package com.sip.voip.bean;
 public class LoginRecordsItem {
     private String resId ;
     private String sipLogin;
+    private String sipDomain;
 
     public LoginRecordsItem(String resId, String sipLogin, String sipDomain) {
         this.resId = resId;
@@ -35,6 +36,5 @@ public class LoginRecordsItem {
         this.sipDomain = sipDomain;
     }
 
-    private String sipDomain;
 
 }

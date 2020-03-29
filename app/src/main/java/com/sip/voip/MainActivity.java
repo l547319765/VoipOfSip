@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         //底部工具类
         BottomNavigationView navView = findViewById(R.id.nav_view);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
+                R.id.navigation_call, R.id.navigation_codec)
                 .build();
         //绑定页面
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);

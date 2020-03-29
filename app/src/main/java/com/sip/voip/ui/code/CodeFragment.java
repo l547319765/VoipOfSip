@@ -46,26 +46,6 @@ public class CodeFragment extends Fragment {
         callRecords.setLayoutManager(layoutManager);
         //设置为垂直布局，这也是默认的
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         mAdapter = new QuickAdapter<CodeCs>(initCodeCs()) {
             @Override
             public int getLayoutId(int viewType) {
@@ -111,7 +91,8 @@ public class CodeFragment extends Fragment {
         }
         return ls;
     }
-    public void changeCodeCs(){
-
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 }

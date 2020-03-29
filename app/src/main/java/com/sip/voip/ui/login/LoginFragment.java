@@ -40,6 +40,9 @@ public class LoginFragment extends Fragment {
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
         root = inflater.inflate(R.layout.fragment_login, container, false);
         mAccountCreator = LinphoneService.getCore().createAccountCreator(null);
+
+
+
         RecyclerView loginRecords = (RecyclerView)root.findViewById(R.id.login_list);
         LinearLayoutManager layoutManager = new LinearLayoutManager(root.getContext());
         //设置布局管理器
@@ -68,20 +71,23 @@ public class LoginFragment extends Fragment {
 //        callRecords.addItemDecoration( new DividerGridItemDecoration(this ));
         //设置增加或删除条目的动画
         loginRecords.setItemAnimator( new DefaultItemAnimator());
-        Button login = (Button)root.findViewById(R.id.login);
         Button registered = (Button)root.findViewById(R.id.registered);
-        login.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                Intent intent = new Intent(root.getContext(), LoginToSipActivity.class);
-                startActivity(intent);
-            }
-        });
         registered.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
 //                Intent intent = new Intent(root.getContext(), LoginToSipActivity.class);
 //                startActivity(intent);
+            }
+        });
+
+
+
+        Button login = (Button)root.findViewById(R.id.login);
+        login.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                Intent intent = new Intent(root.getContext(), LoginToSipActivity.class);
+                startActivity(intent);
             }
         });
         return root;

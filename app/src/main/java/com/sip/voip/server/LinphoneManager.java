@@ -4,16 +4,24 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.os.Handler;
 
 import com.sip.voip.R;
+import com.sip.voip.utils.DatabaseHelper;
 import com.sip.voip.utils.LinphoneUtils;
 
+import org.linphone.core.Call;
 import org.linphone.core.Core;
 import org.linphone.core.CoreListener;
 import org.linphone.core.Factory;
 import org.linphone.core.LogCollectionState;
+import org.linphone.core.PayloadType;
+import org.linphone.core.PresenceBasicStatus;
+import org.linphone.core.PresenceModel;
+import org.linphone.core.ProxyConfig;
+import org.linphone.core.RegistrationState;
 import org.linphone.core.tools.Log;
 import org.linphone.mediastream.Version;
 
@@ -43,7 +51,7 @@ public class LinphoneManager {
     private CoreListener mCoreListener;
     private Timer mTimer;
     private Handler mHandler;
-
+    private DatabaseHelper dbHelper;
     public LinphoneManager(Context serviceContext) {
 //        mLPConfigXsd = basePath + "/lpconfig.xsd";
 //        mLinphoneRootCaFile = basePath + "/rootca.pem";
@@ -63,7 +71,11 @@ public class LinphoneManager {
         mUserCerts = basePath + "/user-certs";
         mResources = serviceContext.getResources();
         mHandler = new Handler();
+        dbHelper = new DatabaseHelper(serviceContext,"BookStore.db",null,1);
 
+    }
+    public static synchronized final DatabaseHelper getDatabaseHelper() {
+        return getInstance().dbHelper;
     }
 
     public synchronized static final LinphoneManager createAndStart(Context context, CoreListener coreListener) {
@@ -107,6 +119,7 @@ public class LinphoneManager {
             };
             mTimer = new Timer("Linphone scheduler");
             mTimer.schedule(lTask, 0, 20);
+
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -170,6 +183,8 @@ public class LinphoneManager {
     }
 
     private void doDestroy() {
+        Log.w("[Manager] Destroying Manager");
+        changeStatusToOffline();
         try {
             mCore.removeListener(mCoreListener);
             mTimer.cancel();
@@ -182,5 +197,135 @@ public class LinphoneManager {
         }
     }
 
+    public void changeStatusToOnline() {
+        if (mCore == null) return;
+        PresenceModel model = mCore.createPresenceModel();
+        model.setBasicStatus(PresenceBasicStatus.Open);
+        mCore.setPresenceModel(model);
+    }
 
+    private void changeStatusToOffline() {
+        if (mCore != null) {
+            PresenceModel model = mCore.getPresenceModel();
+            model.setBasicStatus(PresenceBasicStatus.Closed);
+            mCore.setPresenceModel(model);
+        }
+    }
+/*
+    private void initCodec(Core mCore){
+        PayloadType pt[] = mCore.getAudioPayloadTypes();
+        PayloadType ptNew[] = new PayloadType[pt.length+1];
+        System.arraycopy(pt,0,ptNew,0,pt.length);
+
+        ptNew[pt.length] = new PayloadType() {
+            @Override
+            public int getChannels() {
+                return 0;
+            }
+
+            @Override
+            public int getClockRate() {
+                return 0;
+            }
+
+            @Override
+            public String getDescription() {
+                return null;
+            }
+
+            @Override
+            public String getEncoderDescription() {
+                return null;
+            }
+
+            @Override
+            public boolean isUsable() {
+                return false;
+            }
+
+            @Override
+            public boolean isVbr() {
+                return false;
+            }
+
+            @Override
+            public String getMimeType() {
+                return null;
+            }
+
+            @Override
+            public int getNormalBitrate() {
+                return 0;
+            }
+
+            @Override
+            public void setNormalBitrate(int i) {
+
+            }
+
+            @Override
+            public int getNumber() {
+                return 0;
+            }
+
+            @Override
+            public void setNumber(int i) {
+
+            }
+
+            @Override
+            public String getRecvFmtp() {
+                return null;
+            }
+
+            @Override
+            public void setRecvFmtp(String s) {
+
+            }
+
+            @Override
+            public String getSendFmtp() {
+                return null;
+            }
+
+            @Override
+            public void setSendFmtp(String s) {
+
+            }
+
+            @Override
+            public int getType() {
+                return 0;
+            }
+
+            @Override
+            public int enable(boolean b) {
+                return 0;
+            }
+
+            @Override
+            public boolean enabled() {
+                return false;
+            }
+
+            @Override
+            public void setUserData(Object o) {
+
+            }
+
+            @Override
+            public Object getUserData() {
+                return null;
+            }
+        }
+    }
+    PayloadType[] defauldCodecs = linphoneCore.getAudioCodecs();
+    PayloadType payloadType = inphoneCore.findPayloadType("G729");
+    if (payloadType != null) {
+        linphoneCore.enablePayloadType(payloadType, true);
+        PayloadType[] codecs = new PayloadType[]{payloadType};
+        linphoneCore.setAudioCodecs(codecs);
+    }
+
+ */
 }

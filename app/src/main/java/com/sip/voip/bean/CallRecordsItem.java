@@ -4,7 +4,7 @@ public class CallRecordsItem {
 
     private String resId;
     private String callSip;
-    private String sipRecord;
+    private String connectSituation;
     private String startTime;
     private String inOrOut;
 
@@ -32,12 +32,12 @@ public class CallRecordsItem {
         this.callSip = callSip;
     }
 
-    public String getSipRecord() {
-        return sipRecord;
+    public String getConnectSituation() {
+        return connectSituation;
     }
 
-    public void setSipRecord(String sipRecord) {
-        this.sipRecord = sipRecord;
+    public void setConnectSituation(String connectSituation) {
+        this.connectSituation = connectSituation;
     }
 
     public String getStartTime() {
@@ -50,12 +50,13 @@ public class CallRecordsItem {
 
 
 
-    public CallRecordsItem(String resId, String callSip, String sipRecord, String startTime, String inOrOut) {
-        this.resId = resId;
+    public CallRecordsItem(String callSip, String connectSituation, String startTime, String inOrOut) {
         this.callSip = callSip;
-        this.sipRecord = sipRecord;
+        this.connectSituation = connectSituation;
         this.startTime = startTime;
         this.inOrOut = inOrOut;
+    }
+    public CallRecordsItem() {
     }
 
 }

@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+
+import com.sip.voip.server.LinphoneManager;
 import com.sip.voip.server.LinphoneService;
 
 
@@ -45,6 +47,7 @@ public class LauncherActivity extends Activity {
         intent.setAction(getIntent().getAction());
         intent.setType(getIntent().getType());
         startActivity(intent);
+        LinphoneManager.getInstance().changeStatusToOnline();
     }
 
     // This thread will periodically check if the Service is ready, and then call onServiceReady
