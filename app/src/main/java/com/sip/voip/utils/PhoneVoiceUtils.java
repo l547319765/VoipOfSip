@@ -53,17 +53,14 @@ public class PhoneVoiceUtils {
      * @param type     TransportType.Udp TransportType.Tcp TransportType.Tls
      */
     public void registerUserAuth(String name, String password, String host, TransportType type) {
-        //    String identify = "sip:" + name + "@" + host;
         AccountCreator mAccountCreator = mLinphoneCore.createAccountCreator(null);
-
+        mAccountCreator.reset();
         mAccountCreator.setUsername(name);
         mAccountCreator.setDomain(host);
         mAccountCreator.setPassword(password);
         mAccountCreator.setTransport(type);
-
         ProxyConfig cfg = mAccountCreator.createProxyConfig();
-        // Make sure the newly created one is the default
-        mLinphoneCore.setDefaultProxyConfig(cfg);
+        mLinphoneCore.addProxyConfig(cfg);
     }
 
     //取消注册

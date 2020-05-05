@@ -5,6 +5,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
+import org.linphone.core.Config;
+import org.linphone.core.Factory;
 import org.linphone.core.tools.Log;
 import org.linphone.mediastream.Version;
 

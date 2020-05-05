@@ -26,6 +26,7 @@ enable_simple_group_chat_message_state=0
 aggregate_imdn=1
 notify_each_friend_individually_when_presence_received=0
 
+
 [app]
 activation_code_length=4
 prefer_basic_chat_room=1

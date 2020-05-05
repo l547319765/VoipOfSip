@@ -9,52 +9,35 @@ import android.util.DisplayMetrics;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.RelativeLayout;
-
 import androidx.annotation.Nullable;
-
 import com.sip.voip.server.LinphoneService;
-
 import org.linphone.core.Call;
 import org.linphone.core.Core;
 import org.linphone.core.CoreListenerStub;
 import org.linphone.core.VideoDefinition;
 import org.linphone.core.tools.Log;
 import org.linphone.mediastream.Version;
-
 public class CallActivity extends Activity {
-    // We use 2 TextureView, one for remote video and one for local camera preview
     private TextureView mVideoView;
     private TextureView mCaptureView;
-
     private CoreListenerStub mCoreListener;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.call);
-
         mVideoView = findViewById(R.id.videoSurface);
         mCaptureView = findViewById(R.id.videoCaptureSurface);
-
         Core core = LinphoneService.getCore();
-        // We need to tell the core in which to display what
         core.setNativeVideoWindowId(mVideoView);
         core.setNativePreviewWindowId(mCaptureView);
-
-        // Listen for call state changes
         mCoreListener = new CoreListenerStub() {
             @Override
             public void onCallStateChanged(Core core, Call call, Call.State state, String message) {
                 if (state == Call.State.End || state == Call.State.Released) {
-                    // Once call is finished (end state), terminate the activity
-                    // We also check for released state (called a few seconds later) just in case
-                    // we missed the first one
                     finish();
                 }
             }
         };
-
         findViewById(R.id.terminate_call).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -62,7 +45,6 @@ public class CallActivity extends Activity {
                 if (core.getCallsNb() > 0) {
                     Call call = core.getCurrentCall();
                     if (call == null) {
-                        // Current call can be null if paused for example
                         call = core.getCalls()[0];
                     }
                     call.terminate();
@@ -70,12 +52,10 @@ public class CallActivity extends Activity {
             }
         });
     }
-
     @Override
     protected void onStart() {
         super.onStart();
     }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -83,19 +63,16 @@ public class CallActivity extends Activity {
         LinphoneService.getCore().addListener(mCoreListener);
         resizePreview();
     }
-
     @Override
     protected void onPause() {
         LinphoneService.getCore().removeListener(mCoreListener);
 
         super.onPause();
     }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
     }
-
     @TargetApi(24)
     @Override
     public void onUserLeaveHint() {
@@ -108,7 +85,6 @@ public class CallActivity extends Activity {
             enterPictureInPictureMode();
         }
     }
-
     @Override
     public void onPictureInPictureModeChanged(
             boolean isInPictureInPictureMode, Configuration newConfig) {
@@ -119,7 +95,6 @@ public class CallActivity extends Activity {
             // If we did hide something, let's make them visible again
         }
     }
-
     private void resizePreview() {
         Core core = LinphoneService.getCore();
         if (core.getCallsNb() > 0) {

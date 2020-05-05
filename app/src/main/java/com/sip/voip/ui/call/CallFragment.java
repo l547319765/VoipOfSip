@@ -18,19 +18,12 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.sip.voip.LoginToSipActivity;
 import com.sip.voip.R;
-import com.sip.voip.bean.CallRecordsItem;
 import com.sip.voip.common.RecyclerView.QuickAdapter;
 import com.sip.voip.server.LinphoneManager;
 import com.sip.voip.server.LinphoneService;
-import com.sip.voip.utils.DatabaseHelper;
 import com.sip.voip.utils.PhoneVoiceUtils;
 
 import org.linphone.core.Address;
@@ -75,12 +68,14 @@ public class CallFragment extends Fragment implements TextWatcher {
         populateSliderContent();
         mCoreListener = new CoreListenerStub() {
             @Override
-            public void onRegistrationStateChanged(final Core core, final ProxyConfig cfg, final RegistrationState state, String message) {
+            public void onRegistrationStateChanged(final Core core, final ProxyConfig cfg,
+                                                   final RegistrationState state, String message) {
                 if (core.getProxyConfigList() == null || core.getAuthInfoList().length == 0) {
                     showNoAccountConfigured();
                     return;
                 }
-                if ((core.getDefaultProxyConfig() != null && core.getDefaultProxyConfig().equals(cfg)) || core.getDefaultProxyConfig() == null) {
+                if ((core.getDefaultProxyConfig() != null && core.getDefaultProxyConfig().equals(cfg)) ||
+                        core.getDefaultProxyConfig() == null) {
                             updateLed(state,core);
                 }
                 try {
@@ -217,7 +212,6 @@ public class CallFragment extends Fragment implements TextWatcher {
                 mLed.setImageResource(R.drawable.led_inprogress);
                 break;
         }
-
     }
 
     public List<Map<String,String>> initData(){

@@ -1,44 +1,28 @@
 package com.sip.voip.ui.code;
-
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.Switch;
-import android.widget.TextView;
-
-import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.sip.voip.R;
 import com.sip.voip.bean.CodeCs;
 import com.sip.voip.common.RecyclerView.QuickAdapter;
 import com.sip.voip.server.LinphoneManager;
-
 import org.linphone.core.Core;
 import org.linphone.core.PayloadType;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-
 public class CodeFragment extends Fragment {
-
     private CodeViewModel codeViewModel;
     private QuickAdapter mAdapter;
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
         View root = inflater.inflate(R.layout.fragment_code, container, false);
         RecyclerView callRecords = (RecyclerView)root.findViewById(R.id.call_records);
         LinearLayoutManager layoutManager = new LinearLayoutManager(root.getContext());
@@ -66,11 +50,7 @@ public class CodeFragment extends Fragment {
                 });
             }
         };
-        //设置Adapter
         callRecords.setAdapter(mAdapter);
-        //设置分隔线
-//        callRecords.addItemDecoration( new DividerGridItemDecoration(this ));
-        //设置增加或删除条目的动画
         callRecords.setItemAnimator( new DefaultItemAnimator());
         return root;
     }
@@ -87,6 +67,7 @@ public class CodeFragment extends Fragment {
                 boolean bt = pt.enabled();
                 CodeCs cc = new CodeCs(pt,title,subTitle,bt);
                 ls.add(cc);
+
             }
         }
         return ls;

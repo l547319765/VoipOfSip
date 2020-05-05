@@ -3,7 +3,8 @@ contact="Linphone Android" <sip:linphone.android@unknown-host>
 use_info=0
 use_ipv6=1
 keepalive_period=30000
-sip_port=-1
+sip_port=0
+sip_udp_port=0
 sip_tcp_port=-1
 sip_tls_port=-1
 media_encryption=none
@@ -18,3 +19,8 @@ push_notification=1
 [misc]
 max_calls=10
 history_max_size=100
+
+[audio_codec_0]
+mime=g729
+rate=8000
+enabled=1

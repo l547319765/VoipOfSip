@@ -6,11 +6,6 @@
         android:icon="@drawable/ic_home_black_24dp"
         android:title="@string/title_call" />
 
-<!--    <item-->
-<!--        android:id="@+id/navigation_dashboard"-->
-<!--        android:icon="@drawable/ic_dashboard_black_24dp"-->
-<!--        android:title="@string/title_login" />-->
-
     <item
         android:id="@+id/navigation_codec"
         android:icon="@drawable/ic_notifications_black_24dp"

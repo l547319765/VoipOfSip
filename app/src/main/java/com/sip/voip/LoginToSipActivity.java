@@ -17,9 +17,11 @@ import com.sip.voip.utils.PhoneVoiceUtils;
 import org.linphone.core.AccountCreator;
 import org.linphone.core.Core;
 import org.linphone.core.CoreListenerStub;
+import org.linphone.core.DialPlan;
 import org.linphone.core.ProxyConfig;
 import org.linphone.core.RegistrationState;
 import org.linphone.core.TransportType;
+import org.linphone.core.tools.Log;
 
 public class LoginToSipActivity extends Activity implements TextWatcher {
     private EditText mUsername,mPassword,mDomain;
@@ -67,7 +69,7 @@ public class LoginToSipActivity extends Activity implements TextWatcher {
                     Toast.makeText(LoginToSipActivity.this, "Success: " + message, Toast.LENGTH_LONG).show();
                     finish();
                 } else if (state == RegistrationState.Failed) {
-//                    Toast.makeText(LoginToSipActivity.this, "Failure: " + message, Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginToSipActivity.this, "Failure: " + message, Toast.LENGTH_LONG).show();
                 }
             }
         };
@@ -97,7 +99,7 @@ public class LoginToSipActivity extends Activity implements TextWatcher {
     }
 
     private void configureAccount() {
-        TransportType tst = TransportType.Udp;
+        TransportType tst = TransportType.Tcp;
         switch (mTransport.getCheckedRadioButtonId()) {
             case R.id.transport_udp:
                 tst = TransportType.Udp;
@@ -109,6 +111,8 @@ public class LoginToSipActivity extends Activity implements TextWatcher {
                 tst = TransportType.Tls;
                 break;
         }
+        ProxyConfig proxyConfig = LinphoneService.getCore().createAccountCreator(null).createProxyConfig();
+
         phoneVoiceUtils.registerUserAuth(mUsername.getText().toString(),mPassword.getText().toString()
                 ,mDomain.getText().toString(),tst);
     }

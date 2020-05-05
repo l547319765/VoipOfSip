@@ -1,30 +1,19 @@
 package com.sip.voip.server;
-
 import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.Build;
 import android.os.Handler;
-
 import com.sip.voip.R;
 import com.sip.voip.utils.DatabaseHelper;
 import com.sip.voip.utils.LinphoneUtils;
-
-import org.linphone.core.Call;
+import org.linphone.core.AccountCreator;
 import org.linphone.core.Core;
 import org.linphone.core.CoreListener;
 import org.linphone.core.Factory;
 import org.linphone.core.LogCollectionState;
-import org.linphone.core.PayloadType;
 import org.linphone.core.PresenceBasicStatus;
 import org.linphone.core.PresenceModel;
-import org.linphone.core.ProxyConfig;
-import org.linphone.core.RegistrationState;
+import org.linphone.core.Transports;
 import org.linphone.core.tools.Log;
-import org.linphone.mediastream.Version;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Timer;
@@ -39,12 +28,9 @@ public class LinphoneManager {
     private static boolean sExited;
     private String mLinphoneFactoryConfigFile = null;
     public String mLinphoneConfigFile = null;
-//    private String mLPConfigXsd = null;
-//    private String mLinphoneRootCaFile = null;
-//    private String mRingSoundFile = null;
-//    private String mRingBackSoundFile = null;
-//    private String mPauseSoundFile = null;
-//    private String mChatDatabaseFile = null;
+    private AccountCreator mAccountCreator;
+    private static final String DEFAULT_ASSISTANT_RC = "/default_assistant_create.rc";
+    private static final String LINPHONE_ASSISTANT_RC = "/linphone_assistant_create.rc";
     private String mUserCerts = null;
     private Resources mResources;
     private Core mCore;
@@ -53,13 +39,6 @@ public class LinphoneManager {
     private Handler mHandler;
     private DatabaseHelper dbHelper;
     public LinphoneManager(Context serviceContext) {
-//        mLPConfigXsd = basePath + "/lpconfig.xsd";
-//        mLinphoneRootCaFile = basePath + "/rootca.pem";
-//        mRingSoundFile = basePath + "/dont_wait_too_long.mkv"; //dont_wait_too_long.mkv   oldphone_mono.wav
-//        mRingBackSoundFile = basePath + "/ringback.wav";
-//        mPauseSoundFile = basePath + "/toy_mono.wav";
-//        mChatDatabaseFile = basePath + "/linphone-history.db";
-//      mErrorToneFile = basePath + "/error.wav";
         mServiceContext = serviceContext;
         String basePath = mServiceContext.getFilesDir().getAbsolutePath();
         Factory.instance().setLogCollectionPath(basePath);
@@ -77,33 +56,25 @@ public class LinphoneManager {
     public static synchronized final DatabaseHelper getDatabaseHelper() {
         return getInstance().dbHelper;
     }
-
     public synchronized static final LinphoneManager createAndStart(Context context, CoreListener coreListener) {
         if (instance != null) {
             throw new RuntimeException("Linphone Manager is already initialized");
         }
-
         instance = new LinphoneManager(context);
         instance.startLibLinphone(context, coreListener);
         return instance;
     }
-
     private synchronized void startLibLinphone(Context context, CoreListener coreListener) {
         try {
             mCoreListener = coreListener;
             copyAssetsFromPackage();
-
-            // Create the Core and add our listener
             mCore = Factory.instance().createCore(mLinphoneConfigFile, mLinphoneFactoryConfigFile, context);
             mCore.addListener(coreListener);
-
             initLibLinphone();
             LinphoneUtils.dumpDeviceInformation();
             LinphoneUtils.dumpInstalledLinphoneInformation(context);
-            // Core must be started after being created and configured
+            LinphoneManager.setSipPort();
             mCore.start();
-
-            // We also MUST call the iterate() method of the Core on a regular basis
             TimerTask lTask = new TimerTask() {
                 @Override
                 public void run() {
@@ -119,7 +90,6 @@ public class LinphoneManager {
             };
             mTimer = new Timer("Linphone scheduler");
             mTimer.schedule(lTask, 0, 20);
-
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -128,15 +98,9 @@ public class LinphoneManager {
     }
 
     private void copyAssetsFromPackage() throws IOException {
-        //   LinphoneUtils.copyIfNotExist(mServiceContext, R.raw.dont_wait_too_long, mRingSoundFile);
-        //   LinphoneUtils.copyIfNotExist(mServiceContext, R.raw.ringback, mRingBackSoundFile);
-        //  LinphoneUtils.copyIfNotExist(mServiceContext, R.raw.toy_mono, mPauseSoundFile);
         LinphoneUtils.copyIfNotExist(mServiceContext, R.raw.linphonerc_default, mLinphoneConfigFile);
         LinphoneUtils.copyIfNotExist(mServiceContext, R.raw.linphonerc_factory, new File(mLinphoneFactoryConfigFile).getName());
-        //   LinphoneUtils.copyIfNotExist(mServiceContext, R.raw.lpconfig, mLPConfigXsd);
-        //   LinphoneUtils.copyIfNotExist(mServiceContext, R.raw.rootca, mLinphoneRootCaFile);
     }
-
     private void initLibLinphone() {
         File f = new File(mUserCerts);
         if (!f.exists()) {
@@ -147,7 +111,6 @@ public class LinphoneManager {
         mCore.setUserCertificatesPath(mUserCerts);
 
     }
-
     public static synchronized Core getCoreIfManagerNotDestroyOrNull() {
         if (sExited || instance == null) {
             Log.e("Trying to get linphone core while LinphoneManager already destroyed or not created");
@@ -155,15 +118,12 @@ public class LinphoneManager {
         }
         return getCore();
     }
-
     public static synchronized final Core getCore() {
         return getInstance().mCore;
     }
-
     public static final boolean isInstanceiated() {
         return instance != null;
     }
-
     public static synchronized final LinphoneManager getInstance() {
         if (instance != null) {
             return instance;
@@ -173,7 +133,6 @@ public class LinphoneManager {
         }
         throw new RuntimeException("Linphone Manager should be created before accessed");
     }
-
     public static synchronized void destroy() {
         if (instance == null) {
             return;
@@ -181,7 +140,6 @@ public class LinphoneManager {
         sExited = true;
         instance.doDestroy();
     }
-
     private void doDestroy() {
         Log.w("[Manager] Destroying Manager");
         changeStatusToOffline();
@@ -196,14 +154,12 @@ public class LinphoneManager {
             instance = null;
         }
     }
-
     public void changeStatusToOnline() {
         if (mCore == null) return;
         PresenceModel model = mCore.createPresenceModel();
         model.setBasicStatus(PresenceBasicStatus.Open);
         mCore.setPresenceModel(model);
     }
-
     private void changeStatusToOffline() {
         if (mCore != null) {
             PresenceModel model = mCore.getPresenceModel();
@@ -211,121 +167,14 @@ public class LinphoneManager {
             mCore.setPresenceModel(model);
         }
     }
-/*
-    private void initCodec(Core mCore){
-        PayloadType pt[] = mCore.getAudioPayloadTypes();
-        PayloadType ptNew[] = new PayloadType[pt.length+1];
-        System.arraycopy(pt,0,ptNew,0,pt.length);
-
-        ptNew[pt.length] = new PayloadType() {
-            @Override
-            public int getChannels() {
-                return 0;
-            }
-
-            @Override
-            public int getClockRate() {
-                return 0;
-            }
-
-            @Override
-            public String getDescription() {
-                return null;
-            }
-
-            @Override
-            public String getEncoderDescription() {
-                return null;
-            }
-
-            @Override
-            public boolean isUsable() {
-                return false;
-            }
-
-            @Override
-            public boolean isVbr() {
-                return false;
-            }
-
-            @Override
-            public String getMimeType() {
-                return null;
-            }
-
-            @Override
-            public int getNormalBitrate() {
-                return 0;
-            }
-
-            @Override
-            public void setNormalBitrate(int i) {
-
-            }
-
-            @Override
-            public int getNumber() {
-                return 0;
-            }
-
-            @Override
-            public void setNumber(int i) {
-
-            }
-
-            @Override
-            public String getRecvFmtp() {
-                return null;
-            }
-
-            @Override
-            public void setRecvFmtp(String s) {
-
-            }
-
-            @Override
-            public String getSendFmtp() {
-                return null;
-            }
-
-            @Override
-            public void setSendFmtp(String s) {
-
-            }
-
-            @Override
-            public int getType() {
-                return 0;
-            }
-
-            @Override
-            public int enable(boolean b) {
-                return 0;
-            }
-
-            @Override
-            public boolean enabled() {
-                return false;
-            }
-
-            @Override
-            public void setUserData(Object o) {
-
-            }
-
-            @Override
-            public Object getUserData() {
-                return null;
-            }
-        }
+    private static Core getLc(){
+        return LinphoneManager.getCore();
     }
-    PayloadType[] defauldCodecs = linphoneCore.getAudioCodecs();
-    PayloadType payloadType = inphoneCore.findPayloadType("G729");
-    if (payloadType != null) {
-        linphoneCore.enablePayloadType(payloadType, true);
-        PayloadType[] codecs = new PayloadType[]{payloadType};
-        linphoneCore.setAudioCodecs(codecs);
+    public static void setSipPort() {
+        if (getLc() == null) return;
+        Transports transports = getLc().getTransports();
+        transports.setUdpPort(0);
+        transports.setTcpPort(10003);
+        getLc().setTransports(transports);
     }
-
- */
 }
